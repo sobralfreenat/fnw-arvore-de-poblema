@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Árvore de Problemas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .problem-tree-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .problem-section {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .problem-section h2 {
+            margin-top: 0;
+        }
+        .problem-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .problem-section li {
+            margin-bottom: 5px;
+        }
+        .problem-section input {
+            width: 300px;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        .problem-section button {
+            padding: 5px 10px;
+        }
+        .file-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .file-buttons button {
+            padding: 10px 20px;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Árvore de Problemas</h1>
+    <div class="problem-tree-container">
+        <div class="problem-section">
+            <h2>Problema Central</h2>
+            <input type="text" id="central-problem-input" placeholder="Digite o problema central">
+        </div>
+        <div class="problem-section">
+            <h2>Causas</h2>
+            <ul id="causes-list"></ul>
+            <input type="text" id="cause-input" placeholder="Adicionar causa">
+            <button onclick="addItem('causes-list', 'cause-input')">Adicionar</button>
+        </div>
+        <div class="problem-section">
+            <h2>Efeitos</h2>
+            <ul id="effects-list"></ul>
+            <input type="text" id="effect-input" placeholder="Adicionar efeito">
+            <button onclick="addItem('effects-list', 'effect-input')">Adicionar</button>
+        </div>
+    </div>
+
+    <div class="file-buttons">
+        <button onclick="saveProblemTreeToFile()">Salvar Arquivo</button>
+        <button onclick="loadProblemTreeFromFile()">Carregar Arquivo</button>
+    </div>
+
+    <script>
+        function addItem(listId, inputId) {
+            var list = document.getElementById(listId);
+            var input = document.getElementById(inputId);
+            var item = document.createElement('li');
+            item.innerText = input.value;
+            list.appendChild(item);
+            input.value = '';
+        }
+
+        function saveProblemTreeToFile() {
+            var problemTreeData = {
+                centralProblem: document.getElementById('central-problem-input').value,
+                causes: getListItems('causes-list'),
+                effects: getListItems('effects-list')
+            };
+
+            var fileName = prompt('Digite o nome do arquivo:', 'problem-tree.json');
+            if (fileName) {
+                var jsonData = JSON.stringify(problemTreeData, null, 2);
+                var blob = new Blob([jsonData], { type: 'application/json' });
+                var url = URL.createObjectURL(blob);
+
+                var link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                link.click();
+
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        function loadProblemTreeFromFile() {
+            var fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.json';
+            fileInput.onchange = function (event) {
+                var file = event.target.files[0];
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var problemTreeData = JSON.parse(e.target.result);
+                    document.getElementById('central-problem-input').value = problemTreeData.centralProblem;
+                    loadListItems('causes-list', problemTreeData.causes);
+                    loadListItems('effects-list', problemTreeData.effects);
+                };
+                reader.readAsText(file);
+            };
+            fileInput.click();
+        }
+
+        function getListItems(listId) {
+            var list = document.getElementById(listId);
+            var items = Array.from(list.getElementsByTagName('li')).map(function (item) {
+                return item.innerText;
+            });
+            return items;
+        }
+
+        function loadListItems(listId, items) {
+            var list = document.getElementById(listId);
+            list.innerHTML = '';
+            items.forEach(function (item) {
+                var li = document.createElement('li');
+                li.innerText = item;
+                list.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
